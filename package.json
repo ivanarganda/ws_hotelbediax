@@ -1,0 +1,26 @@
+{
+  "name": "ws_hotelbedia_x",
+  "version": "1.0.0",
+  "description": "Web service about hotel bedia x data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ivanarganda/ws_hotelbediax.git"
+  },
+  "author": "Ivan Gonzalez Valles",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ivanarganda/ws_hotelbediax/issues"
+  },
+  "homepage": "https://github.com/ivanarganda/ws_hotelbediax#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "http": "^0.0.1-security",
+    "mysql": "^2.18.1"
+  }
+}
