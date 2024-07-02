@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Server Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .stats {
+            margin-top: 20px;
+        }
+        .stat {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hotel bedia server status</h1>
+        <p>Hola, welcome to our server for hotel bedia x!</p>
+        <div class="stats">
+            <div class="stat">Server is running on port: <strong><%= port %></strong></div>
+            <div class="stat">Server current time: <strong><%= currentTime %></strong></div>
+        </div>
+    </div>
+</body>
+</html>
