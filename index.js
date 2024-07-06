@@ -62,17 +62,26 @@ app.get('/', async (req, res) => {
 // Route to get destinations
 app.get('/destinations', async (req, res) => {
   try {
-    let { total_records = false, search = '', page = 1, per_page = 200 } = req.query;
+    let { total_records = false, search = '', page = 1, per_page = 600 } = req.query;
+    let clausure_like = '';
+    const queryParams = [];
 
     if (total_records) {
-      const [total] = await executeQuery('SELECT COUNT(*) AS total FROM destinations', []);
+      if (search) {
+        clausure_like = `
+          WHERE d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ?
+        `;
+        const searchPattern = `%${search}%`;
+        queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+      }
+      const [total] = await executeQuery(`SELECT COUNT(*) AS total FROM destinations d LEFT JOIN countries c ON d.countrycode = c.countrycode ${clausure_like}`, queryParams);
       res.json({ total_records: total.total });
       return;
     }
 
     // Ensure page and per_page are numbers and have valid default values
     page = parseInt(page) || 1;
-    per_page = parseInt(per_page) || 200;
+    per_page = parseInt(per_page) || 600;
 
     const offset = (page - 1) * per_page;
 
@@ -88,9 +97,6 @@ app.get('/destinations', async (req, res) => {
       LEFT JOIN countries c ON d.countrycode = c.countrycode
     `;
 
-    const queryParams = [];
-    let clausure_like = '';
-
     if (search) {
       clausure_like = `
         WHERE d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ?
@@ -104,7 +110,7 @@ app.get('/destinations', async (req, res) => {
 
     const finalQuery = `${queryBase} ${clausure_like} ${queryPagination}`;
 
-    const results = await executeQuery(finalQuery, queryParams);
+    const results = await executeQuery(finalQuery, queryParams); 
     res.json(results);
 
   } catch (error) {
