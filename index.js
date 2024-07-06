@@ -62,7 +62,7 @@ app.get('/', async (req, res) => {
 // Route to get destinations
 app.get('/destinations', async (req, res) => {
   try {
-    let { total_records = false, search = '', page = 1, per_page = 600 } = req.query;
+    let { total_records = false, search = '', page = 1, per_page = 400 } = req.query;
     let clausure_like = '';
     const queryParams = [];
 
@@ -81,7 +81,7 @@ app.get('/destinations', async (req, res) => {
 
     // Ensure page and per_page are numbers and have valid default values
     page = parseInt(page) || 1;
-    per_page = parseInt(per_page) || 600;
+    per_page = parseInt(per_page) || 400;
 
     const offset = (page - 1) * per_page;
 
