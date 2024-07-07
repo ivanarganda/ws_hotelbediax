@@ -67,7 +67,7 @@ app.post('/destinations', async (req, res) => {
     const queryParams = [];
 
     if (total_records) {
-      if (search) {
+      if (search !== '') {
         clausure_like = `
           WHERE d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ?
         `;
@@ -97,7 +97,7 @@ app.post('/destinations', async (req, res) => {
       LEFT JOIN countries c ON d.countrycode = c.countrycode
     `;
 
-    if (search) {
+    if (search !== '') {
       clausure_like = `
         WHERE ( d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ? )
       `;
