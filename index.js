@@ -60,9 +60,9 @@ app.get('/', async (req, res) => {
 });
 
 // Route to get destinations
-app.get('/destinations', async (req, res) => {
+app.post('/destinations', async (req, res) => {
   try {
-    let { total_records = false, search = '', page = 1, per_page = 400 } = req.query;
+    let { filtersSidebar , total_records = false, search = '', page = 1, per_page = 400 } = req.body;
     let clausure_like = '';
     const queryParams = [];
 
@@ -99,7 +99,7 @@ app.get('/destinations', async (req, res) => {
 
     if (search) {
       clausure_like = `
-        WHERE d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ?
+        WHERE ( d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ? )
       `;
       const searchPattern = `%${search}%`;
       queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
