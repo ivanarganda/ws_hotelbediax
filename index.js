@@ -237,15 +237,15 @@ app.put('/destinations/update', async (req, res) => {
 });
 
 // Route to delete a destination
-app.delete('/destinations/delete', async (req, res) => {
+app.delete('/destination', async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id } = req.query;
     if (!id) {
       return res.status(400).json({ 'Error': 'Invalid input' });
     }
     const query = `DELETE FROM destinations WHERE id = ${id}`;
     await executeQuery(query);
-    res.status(200).json({ 'Message': id });
+    res.status(200).json({ 'Success': id });
   } catch (error) {
     console.error('Error in deleting destination', error);
     res.status(500).json({ 'Error': 'Internal server error' });
