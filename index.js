@@ -103,7 +103,22 @@ app.post('/destinations', async (req, res) => {
       `;
       const searchPattern = `%${search}%`;
       queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+    } else {
+      clausure_like = '';
     }
+
+    if ( filtersSidebar.destination_name || filtersSidebar.description || filtersSidebar.country || filtersSidebar.type ){
+      const filterCriteria = [];
+      if (filtersSidebar.destination_name) filterCriteria.push(`d.name LIKE?`);
+      if (filtersSidebar.description) filterCriteria.push(`d.description LIKE?`);
+      if (filtersSidebar.country) filterCriteria.push(`c.name LIKE?`);
+      if (filtersSidebar.type) filterCriteria.push(`d.type LIKE?`);
+      clausure_like += ` ${search === '' ? 'WHERE' : 'OR' } (${filterCriteria.join(' AND ')})`;
+      queryParams.push(...filtersSidebar.destination_name? [ `%${filtersSidebar.destination_name}%` ] : [],
+                         ...filtersSidebar.description? [ `%${filtersSidebar.description}%` ] : [],
+                         ...filtersSidebar.country? [ `%${filtersSidebar.country.split('--')[0]}%` ] : [],
+                         ...filtersSidebar.type? [ `%${filtersSidebar.type}%` ] : []);
+    } 
 
     const queryPagination = `LIMIT ?, ?`;
     queryParams.push(offset, per_page);
