@@ -24,15 +24,23 @@ const pool = mysql.createPool({
   acquireTimeout: 30000  // Increase acquire timeout to 30 seconds
 });
 
-// Function to execute SQL queries with retry logic
 async function executeQuery(query, values) {
   return new Promise((resolve, reject) => {
-    pool.query(query, values, (error, results) => {
-      if (error) {
-        return reject(error);
-      }
-      resolve(results);
-    });
+    const attemptQuery = (retries) => {
+      pool.query(query, values, (error, results) => {
+        if (error) {
+          if (retries > 0) {
+            console.warn(`Retrying query... (${retries} attempts left)`);
+            setTimeout(() => attemptQuery(retries - 1), 1000);
+          } else {
+            return reject(error);
+          }
+        } else {
+          resolve(results);
+        }
+      });
+    };
+    attemptQuery(3); // Retry 3 times before failing
   });
 }
 
