@@ -71,30 +71,18 @@ app.get('/', async (req, res) => {
 // Route to get destinations
 app.post('/destinations', async (req, res) => {
   try {
-    let { filtersSidebar , total_records = false, search = '', page = 1, per_page = 400 } = req.body;
-    let clausure_like = '';
+    let { filtersSidebar, total_records = false, search = '', page = 1, per_page = 400 } = req.body;
     const queryParams = [];
-
-    if (total_records) {
-      if (search !== '') {
-        clausure_like = `
-          WHERE d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ?
-        `;
-        const searchPattern = `%${search}%`;
-        queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-      }
-      const [total] = await executeQuery(`SELECT COUNT(*) AS total FROM destinations d LEFT JOIN countries c ON d.countrycode = c.countrycode ${clausure_like}`, queryParams);
-      res.json({ total_records: total.total });
-      return;
-    }
+    const filterCriteria = [];
+    const searchPattern = `%${search}%`;
 
     // Ensure page and per_page are numbers and have valid default values
     page = parseInt(page) || 1;
     per_page = parseInt(per_page) || 400;
-
     const offset = (page - 1) * per_page;
 
-    const queryBase = `
+    // Base query
+    let queryBase = `
       SELECT
         d.id AS id,
         d.name AS destination_name,
@@ -106,35 +94,53 @@ app.post('/destinations', async (req, res) => {
       LEFT JOIN countries c ON d.countrycode = c.countrycode
     `;
 
-    if (search !== '') {
-      clausure_like = `
-        WHERE ( d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ? )
-      `;
-      const searchPattern = `%${search}%`;
+    // Search filter
+    if (search) {
+      filterCriteria.push(`
+        (d.name LIKE ? OR c.name LIKE ? OR d.description LIKE ? OR d.countrycode LIKE ? OR d.type LIKE ?)
+      `);
       queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-    } else {
-      clausure_like = '';
     }
 
-    if ( filtersSidebar.destination_name || filtersSidebar.description || filtersSidebar.country || filtersSidebar.type ){
-      const filterCriteria = [];
-      if (filtersSidebar.destination_name) filterCriteria.push(`d.name LIKE?`);
-      if (filtersSidebar.description) filterCriteria.push(`d.description LIKE?`);
-      if (filtersSidebar.country) filterCriteria.push(`c.name LIKE?`);
-      if (filtersSidebar.type) filterCriteria.push(`d.type LIKE?`);
-      clausure_like += ` ${search === '' ? 'WHERE' : 'OR' } (${filterCriteria.join(' AND ')})`;
-      queryParams.push(...filtersSidebar.destination_name? [ `%${filtersSidebar.destination_name}%` ] : [],
-                         ...filtersSidebar.description? [ `%${filtersSidebar.description}%` ] : [],
-                         ...filtersSidebar.country? [ `%${filtersSidebar.country.split('--')[0]}%` ] : [],
-                         ...filtersSidebar.type? [ `%${filtersSidebar.type}%` ] : []);
-    } 
+    // Sidebar filters
+    if (filtersSidebar) {
+      if (filtersSidebar.destination_name) {
+        filterCriteria.push('d.name LIKE ?');
+        queryParams.push(`%${filtersSidebar.destination_name}%`);
+      }
+      if (filtersSidebar.description) {
+        filterCriteria.push('d.description LIKE ?');
+        queryParams.push(`%${filtersSidebar.description}%`);
+      }
+      if (filtersSidebar.country) {
+        filterCriteria.push('c.name LIKE ?');
+        queryParams.push(`%${filtersSidebar.country.split('--')[0]}%`);
+      }
+      if (filtersSidebar.type) {
+        filterCriteria.push('d.type LIKE ?');
+        queryParams.push(`%${filtersSidebar.type}%`);
+      }
+    }
 
-    const queryPagination = `LIMIT ?, ?`;
+    // Add WHERE clause if there are any filters
+    if (filterCriteria.length > 0) {
+      queryBase += ` WHERE ${filterCriteria.join(' AND ')}`;
+    }
+
+    // Total records query
+    if (total_records) {
+      const totalQuery = `SELECT COUNT(*) AS total FROM destinations d LEFT JOIN countries c ON d.countrycode = c.countrycode ${filterCriteria.length > 0 ? `WHERE ${filterCriteria.join(' AND ')}` : ''}`;
+      const [total] = await executeQuery(totalQuery, queryParams);
+      res.json({ total_records: total.total });
+      return;
+    }
+
+    // Pagination
+    queryBase += ` LIMIT ?, ?`;
     queryParams.push(offset, per_page);
 
-    const finalQuery = `${queryBase} ${clausure_like} ${queryPagination}`;
-
-    const results = await executeQuery(finalQuery, queryParams); 
+    // Final query execution
+    const results = await executeQuery(queryBase, queryParams);
     res.json(results);
 
   } catch (error) {
@@ -142,6 +148,7 @@ app.post('/destinations', async (req, res) => {
     res.status(500).json({ 'Error': 'Internal server error' });
   }
 });
+
 
 
 app.get('/destination', async (req, res) => {
