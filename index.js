@@ -1,10 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const bodyParser = require("body-parser");
 const mysql = require('mysql');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 app.use(cors()); // Allow requests from all origins
 app.use(bodyParser.json());
@@ -16,10 +17,10 @@ app.set('view engine', 'ejs');
 // Database connection configuration with connection pooling
 const pool = mysql.createPool({
   connectionLimit: 20,
-  host: 'srv936.hstgr.io',
-  user: 'u263299673_HotelBediaX',
-  password: 'Admin1234*!',
-  database: 'u263299673_HotelBediaX',
+  host: process.env.HOST,
+  user: process.env.USER,
+  password: process.env.PASSWORD,
+  database: process.env.DB,
   connectTimeout: 30000, // Increase timeout to 30 seconds
   acquireTimeout: 30000  // Increase acquire timeout to 30 seconds
 });
